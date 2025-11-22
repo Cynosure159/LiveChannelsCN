@@ -9,27 +9,29 @@ import (
 	"github.com/go-resty/resty/v2"
 )
 
+// BilibiliResponse 直播间信息响应
 type BilibiliResponse struct {
-	Code    int `json:"code"`
+	Code    int    `json:"code"`
 	Message string `json:"message"`
-	Data struct {
-		LiveStatus int `json:"live_status"`
-		Title      string `json:"title"`
-		RoomID     int `json:"room_id"`
-		UserInfo struct {
+	Data    struct {
+		LiveStatus  int    `json:"live_status"`
+		Title       string `json:"title"`
+		RoomID      int    `json:"room_id"`
+		OnlineCount int    `json:"online"`
+		KeyFrame    string `json:"keyframe"`
+		UserInfo    struct {
 			Info struct {
 				Uname string `json:"uname"`
 			} `json:"info"`
 		} `json:"user_info"`
-		OnlineCount int `json:"online"`
-		KeyFrame    string `json:"keyframe"`
 	} `json:"data"`
 }
 
+// BilibiliAnchorResponse 主播详细信息响应
 type BilibiliAnchorResponse struct {
-	Code    int `json:"code"`
+	Code    int    `json:"code"`
 	Message string `json:"message"`
-	Data struct {
+	Data    struct {
 		Info struct {
 			Uname string `json:"uname"`
 			Face  string `json:"face"`
@@ -37,10 +39,18 @@ type BilibiliAnchorResponse struct {
 	} `json:"data"`
 }
 
+// AnchorInfo 主播信息
+type AnchorInfo struct {
+	Uname string // 主播名字
+	Face  string // 主播头像 URL
+}
+
+// BilibiliClient Bilibili 平台客户端
 type BilibiliClient struct {
 	client *resty.Client
 }
 
+// NewBilibiliClient 创建 Bilibili 客户端
 func NewBilibiliClient() *BilibiliClient {
 	return &BilibiliClient{
 		client: resty.New(),
@@ -48,21 +58,22 @@ func NewBilibiliClient() *BilibiliClient {
 }
 
 // GetStreamStatus 获取 B 站直播状态
+// API: https://api.live.bilibili.com/room/v1/Room/get_info?room_id={roomId}
 func (b *BilibiliClient) GetStreamStatus(channelID string) (*models.StreamStatus, error) {
 	url := fmt.Sprintf("https://api.live.bilibili.com/room/v1/Room/get_info?room_id=%s", channelID)
 
+	// 获取直播间基本信息
 	resp, err := b.client.R().
 		SetHeader("User-Agent", "Mozilla/5.0").
 		Get(url)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to fetch bilibili room info: %w", err)
 	}
 
 	var biliResp BilibiliResponse
-	err = json.Unmarshal(resp.Body(), &biliResp)
-	if err != nil {
-		return nil, err
+	if err := json.Unmarshal(resp.Body(), &biliResp); err != nil {
+		return nil, fmt.Errorf("failed to parse bilibili response: %w", err)
 	}
 
 	if biliResp.Code != 0 {
@@ -72,12 +83,12 @@ func (b *BilibiliClient) GetStreamStatus(channelID string) (*models.StreamStatus
 	isLive := biliResp.Data.LiveStatus == 1
 	roomID := biliResp.Data.RoomID
 
-	// 获取主播的详细信息（名字和头像）
+	// 获取主播详细信息（名字和头像）
 	anchorInfo, err := b.getAnchorInfo(roomID)
 	if err != nil {
-		// 如果获取主播信息失败，使用原始数据
+		// 如果获取主播信息失败，使用channelID作为降级方案
 		anchorInfo = &AnchorInfo{
-			Uname: biliResp.Data.UserInfo.Info.Uname,
+			Uname: channelID,
 			Face:  "",
 		}
 	}
@@ -95,22 +106,11 @@ func (b *BilibiliClient) GetStreamStatus(channelID string) (*models.StreamStatus
 		UpdatedAt:    time.Now().Unix(),
 	}
 
-	// 如果有头像，添加到 ThumbnailURL 的注释中（或创建新字段）
-	if anchorInfo.Face != "" {
-		// 如果需要，可以在模型中添加 AvatarURL 字段
-		// 这里暂时保留，可以后续扩展
-	}
-
 	return status, nil
 }
 
-// AnchorInfo 主播信息
-type AnchorInfo struct {
-	Uname string
-	Face  string
-}
-
-// getAnchorInfo 获取主播的详细信息
+// getAnchorInfo 获取主播详细信息
+// API: https://api.live.bilibili.com/live_user/v1/UserInfo/get_anchor_in_room
 func (b *BilibiliClient) getAnchorInfo(roomID int) (*AnchorInfo, error) {
 	url := fmt.Sprintf("https://api.live.bilibili.com/live_user/v1/UserInfo/get_anchor_in_room?roomid=%d", roomID)
 
@@ -119,13 +119,12 @@ func (b *BilibiliClient) getAnchorInfo(roomID int) (*AnchorInfo, error) {
 		Get(url)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to fetch anchor info: %w", err)
 	}
 
 	var anchorResp BilibiliAnchorResponse
-	err = json.Unmarshal(resp.Body(), &anchorResp)
-	if err != nil {
-		return nil, err
+	if err := json.Unmarshal(resp.Body(), &anchorResp); err != nil {
+		return nil, fmt.Errorf("failed to parse anchor response: %w", err)
 	}
 
 	if anchorResp.Code != 0 {
