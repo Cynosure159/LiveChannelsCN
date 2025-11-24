@@ -1,30 +1,37 @@
-# 构建阶段
+# 第一阶段：构建阶段
 FROM golang:1.21-alpine AS builder
 
+# 设置工作目录
 WORKDIR /app
 
-# 安装依赖
+# 复制 go.mod 和 go.sum（如果存在）
 COPY go.mod go.sum ./
 RUN go mod download
 
-# 复制源代码
+# 复制源码
 COPY . .
 
-# 构建应用
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o live-channels .
+# 编译二进制文件，启用静态链接以兼容 Alpine
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -o live-channels .
 
-# 最终镜像
-FROM alpine:latest
+# 第二阶段：运行阶段（基于 Alpine，轻量且可调试）
+FROM alpine:3.20
 
-RUN apk --no-cache add ca-certificates
+# 安装必要工具（可选，用于调试）
+RUN apk --no-cache add ca-certificates && \
+    mkdir -p /config
 
-WORKDIR /root/
+# 复制编译好的二进制文件
+COPY --from=builder /app/live-channels /live-channels
 
-# 从构建阶段复制二进制文件
-COPY --from=builder /app/live-channels .
-COPY --from=builder /app/config.json .
-COPY --from=builder /app/web ./web
+# 设置挂载点（仅保留 /config）
+VOLUME ["/config"]
 
+# 设置环境变量
+ENV CONFIG_PATH=/config/channel.json
+
+# 暴露端口
 EXPOSE 8080
 
-CMD ["./live-channels"]
+# 设置启动命令
+CMD ["/live-channels"]
