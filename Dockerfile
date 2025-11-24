@@ -4,14 +4,16 @@ FROM golang:1.21-alpine AS builder
 # 设置工作目录
 WORKDIR /app
 
-# 复制 go.mod 和 go.sum（如果存在）
-COPY go.mod go.sum ./
-RUN go env -w GO111MODULE=on 
-RUN go env -w GOPROXY=https://goproxy.cn,direct
-RUN go mod download
-
 # 复制源码
 COPY . .
+
+# 复制 go.mod 和 go.sum（如果存在）
+# COPY go.mod go.sum ./
+# RUN go env -w GO111MODULE=on 
+# RUN go env -w GOPROXY=https://goproxy.cn,direct
+RUN go mod download
+
+
 
 # 编译二进制文件，启用静态链接以兼容 Alpine
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -o live-channels .
