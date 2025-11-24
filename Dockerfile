@@ -7,8 +7,8 @@ WORKDIR /app
 # 复制 go.mod 和 go.sum（如果存在）
 COPY go.mod go.sum ./
 RUN go env -w GO111MODULE=on \
-    && go env -w GOPROXY=https://goproxy.cn,direct \
-    && go mod download
+RUN go env -w GOPROXY=https://goproxy.cn,direct \
+RUN go mod download
 
 # 复制源码
 COPY . .
