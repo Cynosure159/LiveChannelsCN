@@ -6,11 +6,6 @@ WORKDIR /app
 
 # 复制源码
 COPY . .
-
-# 复制 go.mod 和 go.sum（如果存在）
-# COPY go.mod go.sum ./
-# RUN go env -w GO111MODULE=on 
-# RUN go env -w GOPROXY=https://goproxy.cn,direct
 RUN go mod download
 
 
@@ -28,11 +23,15 @@ RUN apk --no-cache add ca-certificates && \
 # 复制编译好的二进制文件
 COPY --from=builder /app/live-channels /live-channels
 
-# 设置挂载点（仅保留 /config）
+# 复制静态页面目录（从构建阶段复制到最终镜像）
+COPY --from=builder /app/web /web
+
+# 设置挂载点（仅保留 /config，/web 已固化在镜像中）
 VOLUME ["/config"]
 
 # 设置环境变量
 ENV CONFIG_PATH=/config/channel.json
+ENV WEB_ROOT=/web
 
 # 暴露端口
 EXPOSE 8080
