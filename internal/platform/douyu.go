@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"live-channels/internal/models"
-	"log"
 	"strconv"
 	"time"
 
@@ -41,11 +40,7 @@ func NewDouyuClient() *DouyuClient {
 // GetStreamStatus 获取斗鱼直播状态
 // API: https://www.douyu.com/betard/{roomId}
 func (d *DouyuClient) GetStreamStatus(channelID string) (*models.StreamStatus, error) {
-	log.Println("Douyu GetStreamStatus channelID:", channelID)
-
 	url := fmt.Sprintf("https://www.douyu.com/betard/%s", channelID)
-
-	log.Println("Douyu GetStreamStatus url:", url)
 
 	// 获取直播间信息
 	resp, err := d.client.R().
@@ -56,19 +51,14 @@ func (d *DouyuClient) GetStreamStatus(channelID string) (*models.StreamStatus, e
 		return nil, fmt.Errorf("failed to fetch douyu room info: %w", err)
 	}
 
-	log.Println("Douyu API Response:", string(resp.Body()))
-
 	var douyuResp DouyuResponse
 	if err := json.Unmarshal(resp.Body(), &douyuResp); err != nil {
-		log.Println("failed to parse douyu response: %w", err)
 		return nil, fmt.Errorf("failed to parse douyu response: %w", err)
 	}
 
-	log.Println("Douyu API Response:", string(douyuResp.Room.RoomName))
-
 	// 判断是否直播：show_status == 1 且 videoLoop == 0
 	isLive := douyuResp.Room.ShowStatus == 1 && douyuResp.Room.VideoLoop == 0
-	viewers, err := strconv.Atoi(douyuResp.Room.RoomBizAll.Hot)
+	viewers, _ := strconv.Atoi(douyuResp.Room.RoomBizAll.Hot)
 
 	status := &models.StreamStatus{
 		ChannelID:    channelID,

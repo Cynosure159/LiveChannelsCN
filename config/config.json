@@ -22,7 +22,11 @@
 		},
 		{
 			"platform": "huya",
-			"channel_id": "11111"
+			"channel_id": "211888"
+		},
+		{
+			"platform": "huya",
+			"channel_id": "128465"
 		}
 	]
 }
