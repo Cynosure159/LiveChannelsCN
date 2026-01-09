@@ -32,3 +32,5 @@ Thumbs.db
 # Project specific
 live-channels
 live-channels.exe
+memory-bank/
+.agent/

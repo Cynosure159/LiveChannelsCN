@@ -1,0 +1,263 @@
+# AGENTS.md
+
+> 项目知识库 - 为 AI Agents 和开发者提供完整项目上下文
+
+## 📋 项目概述
+
+**LiveChannelsCN** 是一个 [Glance](https://github.com/glanceapp/glance) 扩展组件，用于监控中国直播平台（B站、斗鱼、虎牙）的主播实时开播状态。设计完全参照 Glance 内置 **Twitch Channels** 组件风格。
+
+**核心价值**：在自托管看板中集中查看多个直播平台主播状态
+
+---
+
+## 🏗️ 系统架构
+
+### 分层设计
+
+```
+Glance 看板
+    ↓ HTTP GET /
+LiveChannelsCN (Gin Server)
+    ├── API 层 (router.go) - HTTP 路由、CORS
+    ├── 服务层 (stream_service.go) - 业务逻辑、并发处理
+    ├── 平台层 (factory.go) - 工厂模式 + 策略模式
+    │   ├── bilibili.go - B站 API 客户端
+    │   ├── douyu.go - 斗鱼 API 客户端
+    │   └── huya.go - 虎牙 API 客户端
+    └── 模型层 (models.go) - 数据结构
+    ↓ REST API
+外部直播平台 API
+```
+
+### 核心数据模型
+
+```go
+// 直播状态
+type StreamStatus struct {
+    ChannelID    string  // 房间号
+    Name         string  // 主播名
+    Platform     string  // bilibili|douyu|huya
+    IsLive       bool    // 是否在线
+    Title        string  // 直播标题
+    Viewers      int     // 观看人数
+    ThumbnailURL string  // 封面
+    AvatarURL    string  // 头像
+    ProfileURL   string  // 主页链接
+    UpdatedAt    int64   // 时间戳
+}
+
+// 平台接口
+type StreamProvider interface {
+    GetStreamStatus(channelID string) (*StreamStatus, error)
+}
+```
+
+---
+
+## ⚙️ 配置与部署
+
+### 配置文件 (`config.json`)
+
+```json
+{
+  "channels": [
+    {
+      "platform": "bilibili",
+      "channel_id": "21013446",
+      "name": "主播名称（可选）"
+    }
+  ]
+}
+```
+
+**Channel ID 获取**：
+- B站：`live.bilibili.com/{房间号}`
+- 斗鱼：`douyu.com/{房间号}`
+- 虎牙：`huya.com/{房间号}`
+
+### Docker 部署
+
+```yaml
+# docker-compose.yml
+services:
+  live-channels:
+    image: live-channels:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./config:/config
+```
+
+**镜像**：多阶段构建，基于 Alpine 3.20，约 15MB
+
+### Glance 集成
+
+```yaml
+# glance.yml
+- type: extension
+  url: http://localhost:8080
+  allow-potentially-dangerous-html: true
+  cache: 5m
+```
+
+---
+
+## 🔧 技术栈
+
+| 组件 | 技术 | 版本 |
+|------|------|------|
+| 语言 | Go | 1.25+ |
+| Web 框架 | Gin | v1.11.0 |
+| HTTP 客户端 | Resty | v2.16.5 |
+| 模板引擎 | Go Template | 内置 |
+| 容器 | Docker + Alpine | 3.20 |
+
+**前端**：复用 Glance CSS 类（`twitch-channel-live`, `list`, `collapsible-container` 等）
+
+---
+
+## 📡 API 端点
+
+| 端点 | 方法 | 描述 |
+|------|------|------|
+| `/` | GET | HTML Widget（供 Glance 嵌入） |
+| `/api/streams` | GET | 所有主播状态 (JSON) |
+| `/api/streams/:platform` | GET | 按平台筛选 |
+| `/health` | GET | 健康检查 |
+
+**响应格式**：
+```json
+{
+  "status": "success|error",
+  "data": [StreamStatus],
+  "message": "错误信息（可选）"
+}
+```
+
+---
+
+## 🎯 设计模式
+
+### 工厂模式
+```go
+func CreateProvider(platform Platform) StreamProvider {
+    switch platform {
+    case PlatformBilibili: return NewBilibiliClient()
+    case PlatformDouyu:    return NewDouyuClient()
+    case PlatformHuya:     return NewHuyaClient()
+    }
+}
+```
+
+**扩展新平台**：
+1. 实现 `StreamProvider` 接口
+2. 注册到 `factory.go`
+
+### 并发处理
+服务层使用 goroutine + WaitGroup 并发请求各平台 API
+
+---
+
+## 🛡️ 错误处理
+
+| 场景 | 策略 |
+|------|------|
+| 网络请求失败 | 单个失败不影响其他频道 |
+| API 频率限制 | 建议 ≥30秒 间隔 |
+| 主播信息缺失 | 降级使用 Channel ID |
+| 头像加载失败 | 显示默认 SVG 图标 |
+
+---
+
+## 📁 目录结构
+
+```
+LiveChannelsCN/
+├── main.go                    # 入口
+├── config.json                # 配置（gitignore）
+├── Dockerfile                 # 容器构建
+├── docker-compose.yml         # 编排
+├── internal/
+│   ├── api/router.go          # HTTP 路由
+│   ├── config/config.go       # 配置加载
+│   ├── models/
+│   │   ├── models.go          # 数据结构
+│   │   └── models_test.go     # 单元测试
+│   ├── platform/
+│   │   ├── factory.go         # 平台工厂
+│   │   ├── bilibili.go        # B站客户端
+│   │   ├── douyu.go           # 斗鱼客户端
+│   │   └── huya.go            # 虎牙客户端
+│   └── service/
+│       ├── stream_service.go  # 业务逻辑
+│       └── stream_service_test.go
+└── web/
+    └── index.html             # Go Template
+```
+
+---
+
+## 🌐 外部 API
+
+### Bilibili
+- **房间信息**：`api.live.bilibili.com/room/v1/Room/get_info?room_id={id}`
+- **主播信息**：`api.live.bilibili.com/live_user/v1/UserInfo/get_anchor_in_room?roomid={id}`
+
+### Douyu
+- **房间信息**：`open.douyu.com/api/RoomApi/room/{room_id}`
+
+### Huya
+- **房间信息**：`www.huya.com/cache.php?m=LiveList&do=getLiveListByPage&tagAll={room_id}`
+
+---
+
+## 🔮 开发规范
+
+### 代码规范
+```bash
+# 格式化
+go fmt ./...
+
+# 测试
+go test -v ./...
+
+# 构建
+go build -o live-channels
+```
+
+### 添加新功能
+1. 阅读本文档理解架构
+2. 遵循分层设计原则
+3. 在对应层级添加代码
+4. 编写单元测试
+5. 更新本文档（如有架构变更）
+
+### Git 工作流
+- `main` 分支保护
+- 功能分支：`feature/xxx`
+- 提交前运行测试
+
+---
+
+## 📊 当前状态
+
+**版本**：v0.9.0 (Pre-release)
+
+**已完成**：
+- ✅ 三大平台 API 客户端
+- ✅ 工厂模式架构
+- ✅ Go Template 前端
+- ✅ Docker 部署
+- ✅ CORS 支持
+
+**待办**：
+- [ ] 缓存层（内存/Redis）
+- [ ] 更多平台支持（抖音、快手）
+- [ ] WebSocket 实时推送
+- [ ] 主播分组管理
+
+---
+
+## 📄 许可证
+
+MIT License

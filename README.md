@@ -1,231 +1,143 @@
-# Live Channels - Glance Extension# LiveChannelsCN
+<p align="center">
+  <h1 align="center">📺 LiveChannelsCN</h1>
+  <p align="center">
+    A <a href="https://github.com/glanceapp/glance">Glance</a> extension widget for monitoring Chinese live streaming platforms
+    <br />
+    <a href="./README-ZH.md">中文文档</a> · <a href="#quick-start">Quick Start</a> · <a href="https://github.com/glanceapp/glance">Glance</a>
+  </p>
+</p>
 
-A
+<p align="center">
+  <img src="https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat-square&logo=go" alt="Go Version" />
+  <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License" />
+  <img src="https://img.shields.io/badge/Docker-Ready-2496ED?style=flat-square&logo=docker" alt="Docker" />
+</p>
 
-一个用于 Glance 的直播状态组件，支持查看多个直播平台主播的实时开播状态。
+---
 
-## 📋 功能特性
+## ✨ Features
 
--   ✅ 支持多个直播平台：B 站 (Bilibili)、斗鱼 (Douyu)、虎牙 (Huya)
--   ✅ 实时直播状态查询
--   ✅ JSON 配置文件支持
--   ✅ 响应式设计，与 Glance Twitch 组件风格一致
--   ✅ 并发请求优化，快速响应
--   ✅ RESTful API 接口
+- 🎮 **Multi-Platform Support** - Bilibili, Douyu, Huya
+- 🔴 **Real-time Status** - Live/offline indicators with viewer counts
+- 🎨 **Glance Native Style** - Matches Twitch Channels widget design
+- ⚡ **Concurrent Requests** - Fast parallel API calls
+- 🐳 **Docker Ready** - Easy deployment with Docker Compose
 
-## 🚀 快速开始
+## 📸 Preview
 
-### 前置要求
+The widget displays streamers in a familiar Twitch-style layout:
+- Avatar with live indicator
+- Streamer name and game category
+- Current viewer count
+- Hover preview with stream thumbnail
 
--   Go 1.21 或更高版本
--   网络连接（用于调用直播平台 API）
+## 🚀 Quick Start
 
-### 安装和运行
+### Prerequisites
 
-1. **克隆或初始化项目**
+- Go 1.21+ or Docker
+- A running [Glance](https://github.com/glanceapp/glance) instance
 
-```bash
-cd f:\code\LiveChannelsCN
-go mod download
-```
-
-2. **配置频道信息**
-
-编辑 `config.json` 文件，添加你要监视的主播信息：
-
-```json
-{
-	"channels": [
-		{
-			"platform": "bilibili",
-			"channel_id": "12345",
-			"name": "主播昵称"
-		},
-		{
-			"platform": "douyu",
-			"channel_id": "67890",
-			"name": "斗鱼主播"
-		},
-		{
-			"platform": "huya",
-			"channel_id": "11111",
-			"name": "虎牙主播"
-		}
-	]
-}
-```
-
-**Platform 支持的值：**
-
--   `bilibili` - B 站
--   `douyu` - 斗鱼
--   `huya` - 虎牙
-
-3. **运行服务**
+### Option 1: Docker (Recommended)
 
 ```bash
-go run main.go
+# Clone the repository
+git clone https://github.com/yourusername/LiveChannelsCN.git
+cd LiveChannelsCN
+
+# Copy and edit config
+cp config.example.json config.json
+
+# Start the service
+docker-compose up -d
 ```
 
-服务将在 `http://localhost:8080` 启动。
-
-## 📡 API 端点
-
-### 获取所有直播状态
-
-```
-GET /api/streams
-```
-
-**响应示例：**
-
-```json
-{
-	"status": "success",
-	"data": [
-		{
-			"channel_id": "12345",
-			"name": "主播昵称",
-			"platform": "bilibili",
-			"is_live": true,
-			"title": "直播标题",
-			"game": "",
-			"viewers": 12345,
-			"thumbnail_url": "https://...",
-			"profile_url": "https://space.bilibili.com/12345",
-			"updated_at": 1700000000
-		}
-	]
-}
-```
-
-### 获取指定平台的直播状态
-
-```
-GET /api/streams/:platform
-```
-
-**参数：**
-
--   `platform` - 直播平台 (bilibili | douyu | huya)
-
-**示例：**
+### Option 2: Build from Source
 
 ```bash
-curl http://localhost:8080/api/streams/bilibili
-```
+# Clone and build
+git clone https://github.com/yourusername/LiveChannelsCN.git
+cd LiveChannelsCN
+go build -o live-channels
 
-### 健康检查
-
-```
-GET /health
-```
-
-## 🎨 前端组件
-
-访问 `http://localhost:8080` 打开网页界面，查看直播状态。
-
-### 样式特性
-
--   卡片式布局，与 Glance Twitch 组件保持一致
--   实时直播指示（红色闪烁 LED）
--   显示观看人数（自动单位换算）
--   支持点击卡片打开主播个人页面
--   自动每 30 秒刷新一次数据
--   支持离线状态显示
-
-## 📁 项目结构
-
-```
-.
-├── main.go                          # 程序入口
-├── go.mod                           # Go 模块文件
-├── go.sum                           # Go 依赖锁文件
-├── config.json                      # 配置文件
-├── web/
-│   └── index.html                   # 前端页面
-├── internal/
-│   ├── models/
-│   │   └── models.go                # 数据模型
-│   ├── config/
-│   │   └── config.go                # 配置管理
-│   ├── platform/
-│   │   ├── factory.go               # 平台工厂
-│   │   ├── bilibili.go              # B 站 API 客户端
-│   │   ├── douyu.go                 # 斗鱼 API 客户端
-│   │   └── huya.go                  # 虎牙 API 客户端
-│   ├── service/
-│   │   └── stream_service.go        # 直播服务
-│   └── api/
-│       └── router.go                # API 路由
-└── README.md                        # 项目说明文件
-```
-
-## 🔧 配置说明
-
-### channel_id 获取方式
-
-**B 站：**
-
--   进入主播个人空间
--   URL 为 `https://space.bilibili.com/{uid}`，其中 `{uid}` 就是 channel_id
-
-**斗鱼：**
-
--   进入直播间
--   URL 为 `https://www.douyu.com/{room_id}`，其中 `{room_id}` 就是 channel_id
-
-**虎牙：**
-
--   进入直播间
--   URL 为 `https://www.huya.com/{room_id}`，其中 `{room_id}` 就是 channel_id
-
-## ⚙️ 构建和部署
-
-### 构建可执行文件
-
-```bash
-go build -o live-channels.exe
-```
-
-### 在服务器上运行
-
-```bash
-# Windows
-live-channels.exe
-
-# Linux/Mac
+# Configure and run
+cp config.example.json config.json
 ./live-channels
 ```
 
-## 📝 注意事项
+## ⚙️ Configuration
 
-1. **API 频率限制**：请注意各平台的 API 频率限制，避免过于频繁的请求
-2. **跨域问题**：如果在浏览器中访问，需要配置 CORS（可按需添加）
-3. **缓存建议**：为减少 API 调用，可以在前端实现数据缓存机制
+Edit `config.json` to add streamers:
 
-## 🐛 故障排除
+```json
+{
+  "channels": [
+    {
+      "platform": "bilibili",
+      "channel_id": "21013446",
+      "name": "Streamer Name"
+    },
+    {
+      "platform": "douyu",
+      "channel_id": "5279",
+      "name": "Another Streamer"
+    },
+    {
+      "platform": "huya",
+      "channel_id": "11336",
+      "name": "Huya Streamer"
+    }
+  ]
+}
+```
 
-### 无法获取直播状态
+### Supported Platforms
 
--   检查网络连接
--   验证 `channel_id` 是否正确
--   查看是否触发平台 API 频率限制
+| Platform | `platform` value | How to get `channel_id` |
+|----------|------------------|-------------------------|
+| Bilibili | `bilibili` | Room ID from `live.bilibili.com/{id}` |
+| Douyu | `douyu` | Room ID from `douyu.com/{id}` |
+| Huya | `huya` | Room ID from `huya.com/{id}` |
 
-### 404 错误
+## 🔗 Glance Integration
 
--   确保服务已启动
--   检查 API 端点拼写是否正确
--   确认配置文件存在且格式正确
+Add to your `glance.yml`:
 
-## 📄 许可证
+```yaml
+- type: extension
+  url: http://localhost:8080
+  allow-potentially-dangerous-html: true
+  cache: 5m
+  title: Live Channels
+```
 
-MIT License
+## 📡 API Endpoints
 
-## 🤝 贡献
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/` | GET | HTML widget for Glance |
+| `/api/streams` | GET | All stream statuses (JSON) |
+| `/api/streams/:platform` | GET | Filter by platform |
+| `/health` | GET | Health check |
 
-欢迎提交 Issue 和 Pull Request！
+## 🛠️ Development
 
-## 📧 联系方式
+```bash
+# Run tests
+go test -v ./...
 
-如有问题，欢迎提交 Issue。
+# Format code
+go fmt ./...
+
+# Build
+make build
+```
+
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE) for details.
+
+## 🙏 Acknowledgments
+
+- [Glance](https://github.com/glanceapp/glance) - The amazing self-hosted dashboard
+- Inspired by Glance's built-in Twitch Channels widget
