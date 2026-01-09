@@ -260,6 +260,7 @@ go build -o live-channels
 - [ ] WebSocket 实时推送
 - [ ] 主播分组管理
 - [ ] 增强日志结构 (Zap)
+- [ ] Git CI 流水线 (自动发布 Docker Hub)
 
 ---
 

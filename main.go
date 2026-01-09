@@ -3,11 +3,17 @@ package main
 import (
 	"live-channels/internal/api"
 	"live-channels/internal/config"
-	"log"
+	"live-channels/internal/logger"
 	"os"
+
+	"go.uber.org/zap"
 )
 
 func main() {
+	// 初始化日志
+	logger.Init("dev")
+	defer logger.Sync()
+
 	// 初始化配置
 	configPath := os.Getenv("CONFIG_PATH")
 	if configPath == "" {
@@ -16,13 +22,14 @@ func main() {
 
 	cfg, err := config.LoadConfig(configPath)
 	if err != nil {
-		log.Fatalf("Failed to load config from %s: %v", configPath, err)
+		// 使用 Zap Fatal
+		logger.Fatal("Failed to load config", zap.String("path", configPath), zap.Error(err))
 	}
 
 	// 启动 API 服务器
 	router := api.SetupRouter(cfg)
 
 	if err := router.Run(":8081"); err != nil {
-		log.Fatalf("Failed to start server: %v", err)
+		logger.Fatal("Failed to start server", zap.Error(err))
 	}
 }

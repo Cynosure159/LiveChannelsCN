@@ -1,12 +1,14 @@
 package service
 
 import (
+	"live-channels/internal/logger"
 	"live-channels/internal/models"
 	"live-channels/internal/platform"
-	"log"
 	"sort"
 	"sync"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 // StreamService 直播服务
@@ -99,7 +101,10 @@ func (s *StreamService) worker(jobs <-chan models.ChannelConfig, results chan<- 
 
 		if found && time.Since(item.timestamp) < cacheDuration {
 			// 缓存命中且未过期
-			log.Printf("[Cache] Hit: %s/%s", ch.Platform, ch.ChannelID)
+			logger.Debug("Cache Hit",
+				zap.String("platform", string(ch.Platform)),
+				zap.String("channel_id", ch.ChannelID),
+			)
 			if item.status != nil {
 				// 返回副本以防止外部修改影响缓存
 				copiedStatus := *item.status
@@ -111,7 +116,10 @@ func (s *StreamService) worker(jobs <-chan models.ChannelConfig, results chan<- 
 		}
 
 		// 2. 缓存未命中或过期，从 Provider 获取
-		log.Printf("[Fetch] Fetching: %s/%s", ch.Platform, ch.ChannelID)
+		logger.Debug("Fetching API",
+			zap.String("platform", string(ch.Platform)),
+			zap.String("channel_id", ch.ChannelID),
+		)
 		provider := platform.CreateProvider(ch.Platform)
 		if provider == nil {
 			results <- nil
@@ -122,12 +130,20 @@ func (s *StreamService) worker(jobs <-chan models.ChannelConfig, results chan<- 
 		if err != nil {
 			// 发生错误时，如果缓存中还有（即使过期），优先返回旧缓存作为容错
 			if found && item.status != nil {
-				log.Printf("[Fallback] Using stale cache for %s/%s due to error: %v", ch.Platform, ch.ChannelID, err)
+				logger.Warn("Using stale cache due to error",
+					zap.String("platform", string(ch.Platform)),
+					zap.String("channel_id", ch.ChannelID),
+					zap.Error(err),
+				)
 				copiedStatus := *item.status
 				results <- &copiedStatus
 				continue
 			}
-			log.Printf("[Error] Failed to fetch %s/%s: %v", ch.Platform, ch.ChannelID, err)
+			logger.Error("Failed to fetch stream status",
+				zap.String("platform", string(ch.Platform)),
+				zap.String("channel_id", ch.ChannelID),
+				zap.Error(err),
+			)
 			results <- nil
 			continue
 		}
@@ -145,7 +161,10 @@ func (s *StreamService) worker(jobs <-chan models.ChannelConfig, results chan<- 
 				timestamp: time.Now(),
 			}
 			s.cacheMu.Unlock()
-			log.Printf("[Update] Cache updated: %s/%s", ch.Platform, ch.ChannelID)
+			logger.Debug("Cache Updated",
+				zap.String("platform", string(ch.Platform)),
+				zap.String("channel_id", ch.ChannelID),
+			)
 		}
 		results <- status
 	}
