@@ -117,6 +117,7 @@ services:
 | Web 框架 | Gin | v1.11.0 |
 | HTTP 客户端 | Resty | v2.16.5 |
 | 模板引擎 | Go Template | 内置 |
+| 日志库 | Zap | v1.27.1 |
 | 容器 | Docker + Alpine | 3.20 |
 
 **前端**：复用 Glance CSS 类（`twitch-channel-live`, `list`, `collapsible-container` 等）
@@ -165,6 +166,11 @@ Service 层使用 **Worker Pool** 模式处理并发请求，默认 10 个 Worke
 - **容错降级**：当 API 请求失败时，优先返回过期的缓存数据，避免前端显示为空。
 - **并发安全**：Worker 读取缓存使用读锁，写入使用写锁，确保线程安全。
 
+### 结构化日志 (Zap)
+- **高性能**：使用 Uber Zap 替换标准库 log，提供极高性能的结构化日志记录。
+- **环境隔离**：开发模式（高亮 Console）与生产模式（JSON）自动切换。
+- **上下文丰富**：日志自动携带 Platform、ChannelID 等关键字段，便于排查问题。
+
 ---
 
 ## 🛡️ 错误处理
@@ -189,6 +195,8 @@ LiveChannelsCN/
 ├── internal/
 │   ├── api/router.go          # HTTP 路由
 │   ├── config/config.go       # 配置加载
+│   ├── logger/
+│   │   └── logger.go          # Zap 日志封装
 │   ├── models/
 │   │   ├── models.go          # 数据结构
 │   │   └── models_test.go     # 单元测试
@@ -253,13 +261,13 @@ go build -o live-channels
 - ✅ 全局共享 HTTP 客户端 (Resty + 连接池)
 - ✅ Service 层代码重构 (Worker Pool 并发)
 - ✅ 内存缓存机制 (TTL + 智能降级 + 参数化)
+- ✅ 结构化日志 (Zap)
 - ✅ 移除无效测试目录
 
 **待办**：
 - [ ] 更多平台支持（抖音、快手）
 - [ ] WebSocket 实时推送
 - [ ] 主播分组管理
-- [ ] 增强日志结构 (Zap)
 - [ ] Git CI 流水线 (自动发布 Docker Hub)
 
 ---
