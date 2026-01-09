@@ -21,58 +21,27 @@ func NewStreamService(config *models.Config) *StreamService {
 
 // GetAllStreamStatus 获取所有直播状态
 func (s *StreamService) GetAllStreamStatus() ([]models.StreamStatus, error) {
-	var statuses []models.StreamStatus
-	var mu sync.Mutex
-	var wg sync.WaitGroup
-	var errors []error
-	var errMu sync.Mutex
-
-	// 并发获取所有频道的直播状态
-	for _, channel := range s.config.Channels {
-		wg.Add(1)
-		go func(ch models.ChannelConfig) {
-			defer wg.Done()
-
-			provider := platform.CreateProvider(ch.Platform)
-			if provider == nil {
-				return
-			}
-
-			status, err := provider.GetStreamStatus(ch.ChannelID)
-			if err != nil {
-				errMu.Lock()
-				errors = append(errors, err)
-				errMu.Unlock()
-				return
-			}
-
-			if status != nil {
-				mu.Lock()
-				statuses = append(statuses, *status)
-				mu.Unlock()
-			}
-		}(channel)
-	}
-
-	wg.Wait()
-
-	// 排序：先按直播状态（在直播的在前），再按观众数量（多的在前）
-	s.sortStreamStatus(statuses)
-
-	return statuses, nil
+	return s.fetchStreamStatuses(s.config.Channels), nil
 }
 
 // GetStreamStatusByPlatform 获取指定平台的直播状态
 func (s *StreamService) GetStreamStatusByPlatform(platformType models.Platform) ([]models.StreamStatus, error) {
+	var targetChannels []models.ChannelConfig
+	for _, channel := range s.config.Channels {
+		if channel.Platform == platformType {
+			targetChannels = append(targetChannels, channel)
+		}
+	}
+	return s.fetchStreamStatuses(targetChannels), nil
+}
+
+// fetchStreamStatuses 并发获取频道列表的直播状态
+func (s *StreamService) fetchStreamStatuses(channels []models.ChannelConfig) []models.StreamStatus {
 	var statuses []models.StreamStatus
 	var mu sync.Mutex
 	var wg sync.WaitGroup
 
-	for _, channel := range s.config.Channels {
-		if channel.Platform != platformType {
-			continue
-		}
-
+	for _, channel := range channels {
 		wg.Add(1)
 		go func(ch models.ChannelConfig) {
 			defer wg.Done()
@@ -84,10 +53,12 @@ func (s *StreamService) GetStreamStatusByPlatform(platformType models.Platform) 
 
 			status, err := provider.GetStreamStatus(ch.ChannelID)
 			if err != nil {
+				// TODO: Add logging here
 				return
 			}
 
 			if status != nil {
+				// Apply config name override if present
 				if ch.Name != "" {
 					status.Name = ch.Name
 				}
@@ -104,7 +75,7 @@ func (s *StreamService) GetStreamStatusByPlatform(platformType models.Platform) 
 	// 排序：先按直播状态（在直播的在前），再按观众数量（多的在前）
 	s.sortStreamStatus(statuses)
 
-	return statuses, nil
+	return statuses
 }
 
 // sortStreamStatus 对直播状态进行排序

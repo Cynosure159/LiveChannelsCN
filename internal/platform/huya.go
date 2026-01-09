@@ -18,7 +18,7 @@ type HuyaClient struct {
 // NewHuyaClient 创建虎牙客户端
 func NewHuyaClient() *HuyaClient {
 	return &HuyaClient{
-		client: resty.New(),
+		client: GetHTTPClient(),
 	}
 }
 
