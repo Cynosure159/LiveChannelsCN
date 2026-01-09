@@ -53,7 +53,7 @@ type BilibiliClient struct {
 // NewBilibiliClient 创建 Bilibili 客户端
 func NewBilibiliClient() *BilibiliClient {
 	return &BilibiliClient{
-		client: resty.New(),
+		client: GetHTTPClient(),
 	}
 }
 

@@ -4,13 +4,19 @@ import (
 	"live-channels/internal/api"
 	"live-channels/internal/config"
 	"log"
+	"os"
 )
 
 func main() {
 	// 初始化配置
-	cfg, err := config.LoadConfig("./config/config.json")
+	configPath := os.Getenv("CONFIG_PATH")
+	if configPath == "" {
+		configPath = "./config/config.json"
+	}
+
+	cfg, err := config.LoadConfig(configPath)
 	if err != nil {
-		log.Fatalf("Failed to load config: %v", err)
+		log.Fatalf("Failed to load config from %s: %v", configPath, err)
 	}
 
 	// 启动 API 服务器

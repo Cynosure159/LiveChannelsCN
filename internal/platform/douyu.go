@@ -13,12 +13,12 @@ import (
 // DouyuResponse 斗鱼直播间信息响应
 type DouyuResponse struct {
 	Room struct {
-		ShowStatus int    `json:"show_status"`      // 直播状态：1 为在直播，0 为离线
-		OwnerName  string `json:"owner_name"`       // 主播名字
-		AvatarMid  string `json:"avatar_mid"`       // 主播头像（中等尺寸）
-		RoomName   string `json:"room_name"`        // 直播间名称
-		RoomPic    string `json:"room_pic"`         // 直播间封面
-		VideoLoop  int    `json:"videoLoop"`        // 视频循环标志：0 为正常直播，1 为循环播放
+		ShowStatus int    `json:"show_status"` // 直播状态：1 为在直播，0 为离线
+		OwnerName  string `json:"owner_name"`  // 主播名字
+		AvatarMid  string `json:"avatar_mid"`  // 主播头像（中等尺寸）
+		RoomName   string `json:"room_name"`   // 直播间名称
+		RoomPic    string `json:"room_pic"`    // 直播间封面
+		VideoLoop  int    `json:"videoLoop"`   // 视频循环标志：0 为正常直播，1 为循环播放
 		RoomBizAll struct {
 			Hot string `json:"hot"` // 在线观众数
 		} `json:"room_biz_all"`
@@ -33,7 +33,7 @@ type DouyuClient struct {
 // NewDouyuClient 创建斗鱼客户端
 func NewDouyuClient() *DouyuClient {
 	return &DouyuClient{
-		client: resty.New(),
+		client: GetHTTPClient(),
 	}
 }
 

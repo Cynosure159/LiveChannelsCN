@@ -19,8 +19,9 @@ Glance 看板
     ↓ HTTP GET /
 LiveChannelsCN (Gin Server)
     ├── API 层 (router.go) - HTTP 路由、CORS
-    ├── 服务层 (stream_service.go) - 业务逻辑、并发处理
+    ├── 服务层 (stream_service.go) - 业务逻辑、并发处理、公共 Fetch 逻辑
     ├── 平台层 (factory.go) - 工厂模式 + 策略模式
+    │   ├── client.go - 共享 HTTP 客户端单例 (Resty)
     │   ├── bilibili.go - B站 API 客户端
     │   ├── douyu.go - 斗鱼 API 客户端
     │   └── huya.go - 虎牙 API 客户端
@@ -32,7 +33,7 @@ LiveChannelsCN (Gin Server)
 ### 核心数据模型
 
 ```go
-// 直播状态
+// 直播状态 - internal/models/models.go
 type StreamStatus struct {
     ChannelID    string  // 房间号
     Name         string  // 主播名
@@ -46,7 +47,7 @@ type StreamStatus struct {
     UpdatedAt    int64   // 时间戳
 }
 
-// 平台接口
+// 平台接口 - internal/platform/factory.go
 type StreamProvider interface {
     GetStreamStatus(channelID string) (*StreamStatus, error)
 }
@@ -70,6 +71,10 @@ type StreamProvider interface {
 }
 ```
 
+**环境变量**：
+- `CONFIG_PATH`: 配置文件路径（默认 `./config.json`）
+- `PORT`: 服务端口（默认 `8080`）
+
 **Channel ID 获取**：
 - B站：`live.bilibili.com/{房间号}`
 - 斗鱼：`douyu.com/{房间号}`
@@ -86,6 +91,8 @@ services:
       - "8080:8080"
     volumes:
       - ./config:/config
+    environment:
+      - CONFIG_PATH=/config/config.json
 ```
 
 **镜像**：多阶段构建，基于 Alpine 3.20，约 15MB
@@ -136,25 +143,16 @@ services:
 
 ---
 
-## 🎯 设计模式
+## 🎯 设计模式 & 优化
 
 ### 工厂模式
-```go
-func CreateProvider(platform Platform) StreamProvider {
-    switch platform {
-    case PlatformBilibili: return NewBilibiliClient()
-    case PlatformDouyu:    return NewDouyuClient()
-    case PlatformHuya:     return NewHuyaClient()
-    }
-}
-```
+`platform.CreateProvider` 根据平台类型创建对应的客户端实例。
 
-**扩展新平台**：
-1. 实现 `StreamProvider` 接口
-2. 注册到 `factory.go`
+### 单例模式
+使用 `platform.GetHTTPClient()` 获取全局共享的 Resty 客户端，复用 TCP 连接。
 
 ### 并发处理
-服务层使用 goroutine + WaitGroup 并发请求各平台 API
+Service 层使用 goroutine + WaitGroup 并发请求各平台 API，公共逻辑封装在 `fetchStreamStatuses` 方法中。
 
 ---
 
@@ -162,7 +160,7 @@ func CreateProvider(platform Platform) StreamProvider {
 
 | 场景 | 策略 |
 |------|------|
-| 网络请求失败 | 单个失败不影响其他频道 |
+| 网络请求失败 | 单个失败不影响其他频道，记录错误日志 |
 | API 频率限制 | 建议 ≥30秒 间隔 |
 | 主播信息缺失 | 降级使用 Channel ID |
 | 头像加载失败 | 显示默认 SVG 图标 |
@@ -185,6 +183,7 @@ LiveChannelsCN/
 │   │   └── models_test.go     # 单元测试
 │   ├── platform/
 │   │   ├── factory.go         # 平台工厂
+│   │   ├── client.go          # HTTP 客户端单例
 │   │   ├── bilibili.go        # B站客户端
 │   │   ├── douyu.go           # 斗鱼客户端
 │   │   └── huya.go            # 虎牙客户端
@@ -232,23 +231,17 @@ go build -o live-channels
 4. 编写单元测试
 5. 更新本文档（如有架构变更）
 
-### Git 工作流
-- `main` 分支保护
-- 功能分支：`feature/xxx`
-- 提交前运行测试
-
 ---
 
 ## 📊 当前状态
 
-**版本**：v0.9.0 (Pre-release)
+**版本**：v0.9.1 (Optimized)
 
-**已完成**：
-- ✅ 三大平台 API 客户端
-- ✅ 工厂模式架构
-- ✅ Go Template 前端
-- ✅ Docker 部署
-- ✅ CORS 支持
+**已完成优化**：
+- ✅ 支持 `CONFIG_PATH` 环境变量
+- ✅ 全局共享 HTTP 客户端
+- ✅ Service 层代码重构
+- ✅ 移除无效测试目录
 
 **待办**：
 - [ ] 缓存层（内存/Redis）
