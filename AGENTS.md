@@ -151,8 +151,18 @@ services:
 ### 单例模式
 使用 `platform.GetHTTPClient()` 获取全局共享的 Resty 客户端，复用 TCP 连接。
 
-### 并发处理
-Service 层使用 goroutine + WaitGroup 并发请求各平台 API，公共逻辑封装在 `fetchStreamStatuses` 方法中。
+### 并发处理 (Worker Pool)
+Service 层使用 **Worker Pool** 模式处理并发请求，默认 10 个 Worker，防止突发流量耗尽系统资源。
+
+### HTTP 优化 (连接池)
+- **全局单例**：所有平台共享同一个 Resty 客户端实例。
+- **连接池配置**：自定义 `http.Transport`，配置 `MaxIdleConns` 和 `IdleConnTimeout`，复用 TCP 连接。
+- **重试策略**：添加重试等待（Backoff）和基于状态码的重试条件，减少网络抖动影响。
+
+### 缓存机制
+- **内存缓存**：使用 `map` + `RWMutex` 实现简单的内存缓存，默认 TTL 为 **1 分钟**。
+- **容错降级**：当 API 请求失败时，优先返回过期的缓存数据，避免前端显示为空。
+- **并发安全**：Worker 读取缓存使用读锁，写入使用写锁，确保线程安全。
 
 ---
 
