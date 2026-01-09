@@ -4,6 +4,8 @@ import (
 	"live-channels/internal/models"
 	"live-channels/internal/service"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -23,10 +25,11 @@ func SetupRouter(cfg *models.Config) *gin.Engine {
 
 	// 提供静态文件
 	router.Static("/web", "./web")
-	
+
 	// 提供 index.html，并带上主播数据
 	router.GET("/", func(c *gin.Context) {
-		statuses, err := streamService.GetAllStreamStatus()
+		cacheDuration := getCacheDuration(c)
+		statuses, err := streamService.GetAllStreamStatus(cacheDuration)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, models.APIResponse{
 				Status:  "error",
@@ -48,7 +51,8 @@ func SetupRouter(cfg *models.Config) *gin.Engine {
 
 	// 获取所有直播状态
 	router.GET("/api/streams", func(c *gin.Context) {
-		statuses, err := streamService.GetAllStreamStatus()
+		cacheDuration := getCacheDuration(c)
+		statuses, err := streamService.GetAllStreamStatus(cacheDuration)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, models.APIResponse{
 				Status:  "error",
@@ -83,7 +87,8 @@ func SetupRouter(cfg *models.Config) *gin.Engine {
 			return
 		}
 
-		statuses, err := streamService.GetStreamStatusByPlatform(platformType)
+		cacheDuration := getCacheDuration(c)
+		statuses, err := streamService.GetStreamStatusByPlatform(platformType, cacheDuration)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, models.APIResponse{
 				Status:  "error",
@@ -110,6 +115,16 @@ func SetupRouter(cfg *models.Config) *gin.Engine {
 	})
 
 	return router
+}
+
+// getCacheDuration 从请求参数获取缓存时间，默认 60s
+func getCacheDuration(c *gin.Context) time.Duration {
+	cacheSecondsStr := c.DefaultQuery("cache", "60")
+	cacheSeconds, err := strconv.Atoi(cacheSecondsStr)
+	if err != nil || cacheSeconds < 0 {
+		cacheSeconds = 60
+	}
+	return time.Duration(cacheSeconds) * time.Second
 }
 
 // corsMiddleware CORS 中间件
