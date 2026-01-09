@@ -34,7 +34,7 @@ ENV CONFIG_PATH=/config/channel.json
 ENV WEB_ROOT=/web
 
 # 暴露端口
-EXPOSE 8080
+EXPOSE 8081
 
 # 设置启动命令
 CMD ["/live-channels"]

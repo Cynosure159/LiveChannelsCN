@@ -22,7 +22,7 @@ func main() {
 	// 启动 API 服务器
 	router := api.SetupRouter(cfg)
 
-	if err := router.Run(":8080"); err != nil {
+	if err := router.Run(":8081"); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
 }

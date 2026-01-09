@@ -45,7 +45,8 @@ func SetupRouter(cfg *models.Config) *gin.Engine {
 		c.Header("Widget-Content-Type", "html")
 		c.Header("Content-Type", "text/html; charset=utf-8")
 		c.HTML(http.StatusOK, "index.html", gin.H{
-			"Channels": statuses,
+			"Channels":      statuses,
+			"CollapseAfter": c.DefaultQuery("collapse", "10"),
 		})
 	})
 

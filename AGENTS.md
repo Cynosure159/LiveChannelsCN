@@ -73,7 +73,7 @@ type StreamProvider interface {
 
 **环境变量**：
 - `CONFIG_PATH`: 配置文件路径（默认 `./config.json`）
-- `PORT`: 服务端口（默认 `8080`）
+- `PORT`: 服务端口（默认 `8081`）
 
 **Channel ID 获取**：
 - B站：`live.bilibili.com/{房间号}`
@@ -88,7 +88,7 @@ services:
   live-channels:
     image: live-channels:latest
     ports:
-      - "8080:8080"
+      - "8081:8081"
     volumes:
       - ./config:/config
     environment:
@@ -102,7 +102,7 @@ services:
 ```yaml
 # glance.yml
 - type: extension
-  url: http://localhost:8080
+  url: http://localhost:8081
   allow-potentially-dangerous-html: true
   cache: 5m
 ```
@@ -127,9 +127,9 @@ services:
 
 | 端点 | 方法 | 描述 |
 |------|------|------|
-| `/` | GET | HTML Widget（供 Glance 嵌入） |
-| `/api/streams` | GET | 所有主播状态 (JSON) |
-| `/api/streams/:platform` | GET | 按平台筛选 |
+| `/` | GET | HTML Widget（供 Glance 嵌入） <br> 参数：`?cache=60` (设置缓存时间) <br> 参数：`?collapse=10` (设置折叠数量) |
+| `/api/streams` | GET | 所有主播状态 (JSON) <br> 参数：`?cache=60` |
+| `/api/streams/:platform` | GET | 按平台筛选 <br> 参数：`?cache=60` |
 | `/health` | GET | 健康检查 |
 
 **响应格式**：
@@ -161,6 +161,7 @@ Service 层使用 **Worker Pool** 模式处理并发请求，默认 10 个 Worke
 
 ### 缓存机制
 - **内存缓存**：使用 `map` + `RWMutex` 实现简单的内存缓存，默认 TTL 为 **1 分钟**。
+- **参数化配置**：支持通过 URL 参数 `?cache=SEC` 动态设置缓存时间（默认 60s）。
 - **容错降级**：当 API 请求失败时，优先返回过期的缓存数据，避免前端显示为空。
 - **并发安全**：Worker 读取缓存使用读锁，写入使用写锁，确保线程安全。
 
@@ -245,19 +246,20 @@ go build -o live-channels
 
 ## 📊 当前状态
 
-**版本**：v0.9.1 (Optimized)
+**版本**：v0.9.2 (Performance)
 
 **已完成优化**：
 - ✅ 支持 `CONFIG_PATH` 环境变量
-- ✅ 全局共享 HTTP 客户端
-- ✅ Service 层代码重构
+- ✅ 全局共享 HTTP 客户端 (Resty + 连接池)
+- ✅ Service 层代码重构 (Worker Pool 并发)
+- ✅ 内存缓存机制 (TTL + 智能降级 + 参数化)
 - ✅ 移除无效测试目录
 
 **待办**：
-- [ ] 缓存层（内存/Redis）
 - [ ] 更多平台支持（抖音、快手）
 - [ ] WebSocket 实时推送
 - [ ] 主播分组管理
+- [ ] 增强日志结构 (Zap)
 
 ---
 
