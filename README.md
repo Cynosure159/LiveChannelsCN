@@ -105,7 +105,7 @@ Add to your `glance.yml`:
 
 ```yaml
 - type: extension
-  url: http://localhost:8080
+  url: http://localhost:8081
   allow-potentially-dangerous-html: true
   cache: 5m
   title: Live Channels
@@ -115,9 +115,9 @@ Add to your `glance.yml`:
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/` | GET | HTML widget for Glance |
-| `/api/streams` | GET | All stream statuses (JSON) |
-| `/api/streams/:platform` | GET | Filter by platform |
+| `/` | GET | HTML widget for Glance <br> Params: `?cache=60` (cache TTL in sec), `?collapse=10` (max items before collapse) |
+| `/api/streams` | GET | All stream statuses (JSON) <br> Params: `?cache=60` |
+| `/api/streams/:platform` | GET | Filter by platform <br> Params: `?cache=60` |
 | `/health` | GET | Health check |
 
 ## 🛠️ Development

@@ -105,7 +105,7 @@ cp config.example.json config.json
 
 ```yaml
 - type: extension
-  url: http://localhost:8080
+  url: http://localhost:8081
   allow-potentially-dangerous-html: true
   cache: 5m
   title: 直播状态
@@ -115,9 +115,9 @@ cp config.example.json config.json
 
 | 端点 | 方法 | 描述 |
 |------|------|------|
-| `/` | GET | HTML 组件（供 Glance 嵌入） |
-| `/api/streams` | GET | 所有主播状态 (JSON) |
-| `/api/streams/:platform` | GET | 按平台筛选 |
+| `/` | GET | HTML 组件（供 Glance 嵌入） <br> 参数：`?cache=60` (缓存时间秒), `?collapse=10` (折叠数量) |
+| `/api/streams` | GET | 所有主播状态 (JSON) <br> 参数：`?cache=60` |
+| `/api/streams/:platform` | GET | 按平台筛选 <br> 参数：`?cache=60` |
 | `/health` | GET | 健康检查 |
 
 ## 🛠️ 开发指南

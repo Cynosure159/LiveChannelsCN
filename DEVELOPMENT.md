@@ -48,7 +48,7 @@ go run main.go
 
 6. **访问应用**
 
-打开浏览器访问 `http://localhost:8080`
+打开浏览器访问 `http://localhost:8081`
 
 ## 项目结构详解
 
