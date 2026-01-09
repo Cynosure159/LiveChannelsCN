@@ -4,7 +4,6 @@ import (
 	"live-channels/internal/models"
 	"live-channels/internal/platform"
 	"sort"
-	"sync"
 )
 
 // StreamService 直播服务
@@ -35,47 +34,73 @@ func (s *StreamService) GetStreamStatusByPlatform(platformType models.Platform) 
 	return s.fetchStreamStatuses(targetChannels), nil
 }
 
-// fetchStreamStatuses 并发获取频道列表的直播状态
+// 默认 Worker 数量
+const DefaultWorkerCount = 10
+
+// fetchStreamStatuses 使用 Worker Pool 并发获取频道列表的直播状态
 func (s *StreamService) fetchStreamStatuses(channels []models.ChannelConfig) []models.StreamStatus {
-	var statuses []models.StreamStatus
-	var mu sync.Mutex
-	var wg sync.WaitGroup
-
-	for _, channel := range channels {
-		wg.Add(1)
-		go func(ch models.ChannelConfig) {
-			defer wg.Done()
-
-			provider := platform.CreateProvider(ch.Platform)
-			if provider == nil {
-				return
-			}
-
-			status, err := provider.GetStreamStatus(ch.ChannelID)
-			if err != nil {
-				// TODO: Add logging here
-				return
-			}
-
-			if status != nil {
-				// Apply config name override if present
-				if ch.Name != "" {
-					status.Name = ch.Name
-				}
-
-				mu.Lock()
-				statuses = append(statuses, *status)
-				mu.Unlock()
-			}
-		}(channel)
+	// 如果频道数量少于 Worker 数量，就用频道数量，避免启动多余 Goroutine
+	workerCount := DefaultWorkerCount
+	if len(channels) < workerCount {
+		workerCount = len(channels)
+	}
+	if workerCount == 0 {
+		return []models.StreamStatus{}
 	}
 
-	wg.Wait()
+	jobs := make(chan models.ChannelConfig, len(channels))
+	results := make(chan *models.StreamStatus, len(channels))
 
-	// 排序：先按直播状态（在直播的在前），再按观众数量（多的在前）
+	// 启动 Workers
+	for w := 0; w < workerCount; w++ {
+		go s.worker(jobs, results)
+	}
+
+	// 发送任务
+	for _, ch := range channels {
+		jobs <- ch
+	}
+	close(jobs)
+
+	// 收集结果
+	var statuses []models.StreamStatus
+	for i := 0; i < len(channels); i++ {
+		status := <-results
+		if status != nil {
+			statuses = append(statuses, *status)
+		}
+	}
+
+	// 排序
 	s.sortStreamStatus(statuses)
 
 	return statuses
+}
+
+// worker 处理具体的获取任务
+func (s *StreamService) worker(jobs <-chan models.ChannelConfig, results chan<- *models.StreamStatus) {
+	for ch := range jobs {
+		provider := platform.CreateProvider(ch.Platform)
+		if provider == nil {
+			results <- nil
+			continue
+		}
+
+		status, err := provider.GetStreamStatus(ch.ChannelID)
+		if err != nil {
+			// TODO: Add logging here
+			results <- nil
+			continue
+		}
+
+		if status != nil {
+			// Apply config name override if present
+			if ch.Name != "" {
+				status.Name = ch.Name
+			}
+		}
+		results <- status
+	}
 }
 
 // sortStreamStatus 对直播状态进行排序
