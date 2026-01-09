@@ -133,6 +133,17 @@ go fmt ./...
 make build
 ```
 
+## ⚙️ 进阶配置
+
+可以通过环境变量或命令行参数调整服务行为：
+
+| 环境变量 | 命令行参数 | 默认值 | 说明 |
+|----------|------------|--------|------|
+| `LOG_LEVEL` | `-level` | `info` | 日志等级 (`debug`, `info`, `warn`, `error`) |
+| `GIN_MODE` | `-mode` | `debug` | 设置为 `release` 可切换到生产模式（JSON 日志） |
+| `CONFIG_PATH` | `-config` | `./config/config.json` | 配置文件路径 |
+| `PORT` | `-port` | `8081` | 服务监听端口 |
+
 ## 📄 开源许可
 
 MIT License - 详见 [LICENSE](LICENSE)

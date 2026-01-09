@@ -14,8 +14,23 @@ var (
 
 // Init 初始化 Logger
 // mode: "dev" (开发模式，控制台高亮) | "prod" (生产模式，JSON)
-func Init(mode string) {
+// levelStr: "debug", "info", "warn", "error"
+func Init(mode string, levelStr string) {
 	once.Do(func() {
+		var level zapcore.Level
+		switch levelStr {
+		case "debug":
+			level = zapcore.DebugLevel
+		case "info":
+			level = zapcore.InfoLevel
+		case "warn":
+			level = zapcore.WarnLevel
+		case "error":
+			level = zapcore.ErrorLevel
+		default:
+			level = zapcore.InfoLevel
+		}
+
 		var config zap.Config
 		if mode == "prod" {
 			config = zap.NewProductionConfig()
@@ -24,6 +39,7 @@ func Init(mode string) {
 			config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 		}
 
+		config.Level = zap.NewAtomicLevelAt(level)
 		// 自定义时间格式
 		config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 
@@ -38,7 +54,7 @@ func Init(mode string) {
 // Get 返回全局 Logger
 func Get() *zap.Logger {
 	if log == nil {
-		Init("dev") // 默认初始化
+		Init("dev", "info") // 默认初始化
 	}
 	return log
 }
