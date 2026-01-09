@@ -149,6 +149,9 @@ services:
 ### 工厂模式
 `platform.CreateProvider` 根据平台类型创建对应的客户端实例。
 
+### 集中校验
+在 `models` 包中为 `Platform` 类型实现了 `IsValid()` 方法，统一了平台合法性校验逻辑，减少 API 层的硬编码。
+
 ### 单例模式
 使用 `platform.GetHTTPClient()` 获取全局共享的 Resty 客户端，复用 TCP 连接。
 

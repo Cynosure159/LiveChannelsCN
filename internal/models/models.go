@@ -9,6 +9,15 @@ const (
 	PlatformHuya     Platform = "huya"
 )
 
+// IsValid 验证平台是否有效
+func (p Platform) IsValid() bool {
+	switch p {
+	case PlatformBilibili, PlatformDouyu, PlatformHuya:
+		return true
+	}
+	return false
+}
+
 // ChannelConfig 频道配置
 type ChannelConfig struct {
 	Platform  Platform `json:"platform"`
@@ -23,17 +32,17 @@ type Config struct {
 
 // StreamStatus 直播状态
 type StreamStatus struct {
-	ChannelID   string `json:"channel_id"`
-	Name        string `json:"name"`
-	Platform    string `json:"platform"`
-	IsLive      bool   `json:"is_live"`
-	Title       string `json:"title"`
-	Game        string `json:"game"`
-	Viewers     int    `json:"viewers"`
+	ChannelID    string `json:"channel_id"`
+	Name         string `json:"name"`
+	Platform     string `json:"platform"`
+	IsLive       bool   `json:"is_live"`
+	Title        string `json:"title"`
+	Game         string `json:"game"`
+	Viewers      int    `json:"viewers"`
 	ThumbnailURL string `json:"thumbnail_url"`
-	AvatarURL   string `json:"avatar_url"`
-	ProfileURL  string `json:"profile_url"`
-	UpdatedAt   int64  `json:"updated_at"`
+	AvatarURL    string `json:"avatar_url"`
+	ProfileURL   string `json:"profile_url"`
+	UpdatedAt    int64  `json:"updated_at"`
 }
 
 // APIResponse API 响应
