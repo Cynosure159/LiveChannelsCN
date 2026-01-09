@@ -78,9 +78,7 @@ func SetupRouter(cfg *models.Config) *gin.Engine {
 		platformType := models.Platform(platformStr)
 
 		// 验证平台
-		if platformType != models.PlatformBilibili &&
-			platformType != models.PlatformDouyu &&
-			platformType != models.PlatformHuya {
+		if !platformType.IsValid() {
 			c.JSON(http.StatusBadRequest, models.APIResponse{
 				Status:  "error",
 				Message: "invalid platform",
