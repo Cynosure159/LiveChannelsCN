@@ -74,6 +74,8 @@ type StreamProvider interface {
 **环境变量**：
 - `CONFIG_PATH`: 配置文件路径（默认 `./config.json`）
 - `PORT`: 服务端口（默认 `8081`）
+- `LOG_LEVEL`: 日志等级 (`debug`, `info`, `warn`, `error`，默认 `info`)
+- `GIN_MODE`: 运行模式 (`release` 会启用生产级 JSON 日志，默认为 `debug`)
 
 **Channel ID 获取**：
 - B站：`live.bilibili.com/{房间号}`
@@ -172,6 +174,7 @@ Service 层使用 **Worker Pool** 模式处理并发请求，默认 10 个 Worke
 ### 结构化日志 (Zap)
 - **高性能**：使用 Uber Zap 替换标准库 log，提供极高性能的结构化日志记录。
 - **环境隔离**：开发模式（高亮 Console）与生产模式（JSON）自动切换。
+- **智能默认值**：使用 `go run` 启动时默认开启 `debug` 等级，编译后的二进制文件或 Docker 运行默认开启 `info` 等级。
 - **上下文丰富**：日志自动携带 Platform、ChannelID 等关键字段，便于排查问题。
 
 ---
@@ -243,7 +246,10 @@ go fmt ./...
 go test -v ./...
 
 # 构建
-go build -o live-channels
+go build -o live-channels.exe
+
+# 运行 (支持参数)
+./live-channels.exe -level debug -config ./my-config.json -mode release -port 8081
 ```
 
 ### 添加新功能

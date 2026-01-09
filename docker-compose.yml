@@ -11,5 +11,7 @@ services:
             - ./config.json:/root/config.json
         environment:
             - TZ=Asia/Shanghai
+            - GIN_MODE=release
+            - LOG_LEVEL=info
         restart: unless-stopped
         container_name: live-channels

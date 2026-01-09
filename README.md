@@ -133,6 +133,17 @@ go fmt ./...
 make build
 ```
 
+## ⚙️ Advanced Configuration
+
+You can adjust service behavior via environment variables or command-line flags:
+
+| Env Variable | CLI Flag | Default | Description |
+|--------------|----------|---------|-------------|
+| `LOG_LEVEL` | `-level` | `info` | Log level (`debug`, `info`, `warn`, `error`) |
+| `GIN_MODE` | `-mode` | `debug` | Set to `release` for production mode (JSON logs) |
+| `CONFIG_PATH` | `-config` | `./config/config.json` | Path to your configuration file |
+| `PORT` | `-port` | `8081` | Server listening port |
+
 ## 📄 License
 
 MIT License - see [LICENSE](LICENSE) for details.
