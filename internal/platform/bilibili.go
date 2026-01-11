@@ -64,7 +64,6 @@ func (b *BilibiliClient) GetStreamStatus(channelID string) (*models.StreamStatus
 
 	// 获取直播间基本信息
 	resp, err := b.client.R().
-		SetHeader("User-Agent", "Mozilla/5.0").
 		Get(url)
 
 	if err != nil {
@@ -115,7 +114,6 @@ func (b *BilibiliClient) getAnchorInfo(roomID int) (*AnchorInfo, error) {
 	url := fmt.Sprintf("https://api.live.bilibili.com/live_user/v1/UserInfo/get_anchor_in_room?roomid=%d", roomID)
 
 	resp, err := b.client.R().
-		SetHeader("User-Agent", "Mozilla/5.0").
 		Get(url)
 
 	if err != nil {

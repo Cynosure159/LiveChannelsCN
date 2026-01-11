@@ -12,14 +12,19 @@ import (
 var (
 	httpClient *resty.Client
 	once       sync.Once
+	userAgent  = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
 )
+
+// SetUserAgent 设置全局 User-Agent
+func SetUserAgent(ua string) {
+	if ua != "" {
+		userAgent = ua
+	}
+}
 
 // GetHTTPClient 返回共享的 HTTP 客户端单例
 func GetHTTPClient() *resty.Client {
 	once.Do(func() {
-		// 配置自定义 Transport 以优化连接池
-		// 禁用长连接(或者减少空闲时间)可以减少 wsarecv 错误，但会降低一点性能
-		// 这里选择保守配置：保留长连接，但减少空闲时间和数量
 		transport := &http.Transport{
 			MaxIdleConns:        10,
 			MaxIdleConnsPerHost: 5,
@@ -33,11 +38,11 @@ func GetHTTPClient() *resty.Client {
 
 		httpClient = resty.New().
 			SetTransport(transport).
-			SetTimeout(5 * time.Second).              // 降低总超时，避免长时间卡住
-			SetRetryCount(2).                         // 减少重试次数
-			SetRetryWaitTime(500 * time.Millisecond). // 重试前等待
-			SetRetryMaxWaitTime(2 * time.Second).     // 最大等待时间
-			// 添加重试条件：只在网络错误或 5xx 错误时重试
+			SetHeader("User-Agent", userAgent). // 设置全局 UA
+			SetTimeout(5 * time.Second).
+			SetRetryCount(2).
+			SetRetryWaitTime(500 * time.Millisecond).
+			SetRetryMaxWaitTime(2 * time.Second).
 			AddRetryCondition(func(r *resty.Response, err error) bool {
 				return err != nil || r.StatusCode() >= 500
 			})

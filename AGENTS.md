@@ -76,6 +76,7 @@ type StreamProvider interface {
 - `PORT`: 服务端口（默认 `8081`）
 - `LOG_LEVEL`: 日志等级 (`debug`, `info`, `warn`, `error`，默认 `info`)
 - `GIN_MODE`: 运行模式 (`release` 会启用生产级 JSON 日志，默认为 `debug`)
+- `USER_AGENT`: 自定义 HTTP User-Agent
 
 **Channel ID 获取**：
 - B站：`live.bilibili.com/{房间号}`
@@ -181,6 +182,11 @@ Service 层使用 **Worker Pool** 模式处理并发请求，默认 10 个 Worke
 - **环境隔离**：开发模式（高亮 Console）与生产模式（JSON）自动切换。
 - **智能默认值**：使用 `go run` 启动时默认开启 `debug` 等级，编译后的二进制文件或 Docker 运行默认开启 `info` 等级。
 - **上下文丰富**：日志自动携带 Platform、ChannelID 等关键字段，便于排查问题。
+
+### 可配置 User-Agent
+- **统一管理**：全局共享的 Resty 客户端统一配置 User-Agent，移除各平台代码中的硬编码。
+- **灵活配置**：支持通过 `config.json`、环境变量 `USER_AGENT` 或命令行参数 `-ua` 进行动态设置。
+- **安全增强**：默认使用更具辨识度的 UA，降低被直播平台作为爬虫拦截的风险。
 
 ---
 

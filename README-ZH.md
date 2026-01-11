@@ -143,6 +143,7 @@ make build
 | `GIN_MODE` | `-mode` | `debug` | 设置为 `release` 可切换到生产模式（JSON 日志） |
 | `CONFIG_PATH` | `-config` | `./config/config.json` | 配置文件路径 |
 | `PORT` | `-port` | `8081` | 服务监听端口 |
+| `USER_AGENT` | `-ua` | (内置默认值) | 自定义 HTTP User-Agent |
 
 ## 📄 开源许可
 
