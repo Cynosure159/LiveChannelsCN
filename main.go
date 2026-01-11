@@ -5,6 +5,7 @@ import (
 	"live-channels/internal/api"
 	"live-channels/internal/config"
 	"live-channels/internal/logger"
+	"live-channels/internal/platform"
 	"os"
 	"strings"
 
@@ -17,6 +18,7 @@ func main() {
 	flagMode := flag.String("mode", os.Getenv("GIN_MODE"), "运行模式 (debug, release)")
 	flagConfig := flag.String("config", os.Getenv("CONFIG_PATH"), "配置文件路径")
 	flagPort := flag.String("port", os.Getenv("PORT"), "服务端口")
+	flagUA := flag.String("ua", os.Getenv("USER_AGENT"), "自定义 User-Agent")
 	flag.Parse()
 
 	// 1. 确定基本参数与默认值
@@ -45,6 +47,8 @@ func main() {
 		port = "8081"
 	}
 
+	ua := *flagUA
+
 	// 2. 初始化日志
 	logMode := "dev"
 	if runMode == "release" {
@@ -58,6 +62,13 @@ func main() {
 	if err != nil {
 		logger.Fatal("Failed to load config", zap.String("path", configPath), zap.Error(err))
 	}
+
+	// 3.5 设置全局 User-Agent
+	// 优先级：命令行参数/环境变量 > 配置文件 > 内置默认值
+	if ua == "" {
+		ua = cfg.UserAgent
+	}
+	platform.SetUserAgent(ua)
 
 	// 4. 启动 API 服务器
 	router := api.SetupRouter(cfg)

@@ -27,7 +27,8 @@ type ChannelConfig struct {
 
 // Config 应用配置
 type Config struct {
-	Channels []ChannelConfig `json:"channels"`
+	Channels  []ChannelConfig `json:"channels"`
+	UserAgent string          `json:"user_agent"`
 }
 
 // StreamStatus 直播状态

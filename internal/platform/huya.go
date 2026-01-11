@@ -30,7 +30,6 @@ func (h *HuyaClient) GetStreamStatus(channelID string) (*models.StreamStatus, er
 
 	// 获取直播间页面
 	resp, err := h.client.R().
-		SetHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36").
 		Get(url)
 
 	if err != nil {

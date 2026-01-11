@@ -143,6 +143,7 @@ You can adjust service behavior via environment variables or command-line flags:
 | `GIN_MODE` | `-mode` | `debug` | Set to `release` for production mode (JSON logs) |
 | `CONFIG_PATH` | `-config` | `./config/config.json` | Path to your configuration file |
 | `PORT` | `-port` | `8081` | Server listening port |
+| `USER_AGENT` | `-ua` | (Built-in Default) | Custom HTTP User-Agent |
 
 ## 📄 License
 

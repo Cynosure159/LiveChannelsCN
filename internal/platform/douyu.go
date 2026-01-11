@@ -44,7 +44,6 @@ func (d *DouyuClient) GetStreamStatus(channelID string) (*models.StreamStatus, e
 
 	// 获取直播间信息
 	resp, err := d.client.R().
-		SetHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36").
 		Get(url)
 
 	if err != nil {
