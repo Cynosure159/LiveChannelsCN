@@ -2,8 +2,8 @@ package config
 
 import (
 	"encoding/json"
-	"os"
 	"live-channels/internal/models"
+	"os"
 )
 
 // LoadConfig 从 JSON 文件加载配置
