@@ -188,6 +188,12 @@ Service 层使用 **Worker Pool** 模式处理并发请求，默认 10 个 Worke
 - **灵活配置**：支持通过 `config.json`、环境变量 `USER_AGENT` 或命令行参数 `-ua` 进行动态设置。
 - **安全增强**：默认使用更具辨识度的 UA，降低被直播平台作为爬虫拦截的风险。
 
+### CI/CD 自动化
+- **GitHub Actions**：配置了 `.github/workflows/ci.yml` 自动化流水线。
+- **质量检查**：每次 Push 或 PR 自动运行 `go fmt` 和 `go vet`。
+- **多平台构建**：在 Linux 和 Windows 上验证编译成功。
+- **自动化测试**：运行 `go test` 确保代码正确性。
+
 ---
 
 ## 🛡️ 错误处理
