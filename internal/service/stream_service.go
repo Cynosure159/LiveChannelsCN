@@ -108,6 +108,7 @@ func (s *StreamService) worker(jobs <-chan models.ChannelConfig, results chan<- 
 			if item.status != nil {
 				// 返回副本以防止外部修改影响缓存
 				copiedStatus := *item.status
+				s.applyConfigOverrides(&copiedStatus, ch)
 				results <- &copiedStatus
 			} else {
 				results <- nil
@@ -136,6 +137,7 @@ func (s *StreamService) worker(jobs <-chan models.ChannelConfig, results chan<- 
 					zap.Error(err),
 				)
 				copiedStatus := *item.status
+				s.applyConfigOverrides(&copiedStatus, ch)
 				results <- &copiedStatus
 				continue
 			}
@@ -149,12 +151,7 @@ func (s *StreamService) worker(jobs <-chan models.ChannelConfig, results chan<- 
 		}
 
 		if status != nil {
-			// Apply config name override if present
-			if ch.Name != "" {
-				status.Name = ch.Name
-			}
-
-			// 更新缓存
+			// 更新缓存（存入原始数据）
 			s.cacheMu.Lock()
 			s.cache[cacheKey] = cacheItem{
 				status:    status,
@@ -165,8 +162,18 @@ func (s *StreamService) worker(jobs <-chan models.ChannelConfig, results chan<- 
 				zap.String("platform", string(ch.Platform)),
 				zap.String("channel_id", ch.ChannelID),
 			)
+
+			// 在返回前应用配置覆盖
+			s.applyConfigOverrides(status, ch)
 		}
 		results <- status
+	}
+}
+
+// applyConfigOverrides 应用配置文件中的覆盖项
+func (s *StreamService) applyConfigOverrides(status *models.StreamStatus, ch models.ChannelConfig) {
+	if ch.Name != "" {
+		status.Name = ch.Name
 	}
 }
 
