@@ -1,0 +1,19 @@
+{
+	"channels": [
+		{
+			"platform": "bilibili",
+			"channel_id": "382058693",
+			"name": "示例B站主播"
+		},
+		{
+			"platform": "douyu",
+			"channel_id": "5279",
+			"name": "示例斗鱼主播"
+		},
+		{
+			"platform": "huya",
+			"channel_id": "11336",
+			"name": "示例虎牙主播"
+		}
+	]
+}

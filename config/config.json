@@ -1,0 +1,32 @@
+{
+	"channels": [
+		{
+			"platform": "bilibili",
+			"channel_id": "24065"
+		},
+		{
+			"platform": "bilibili",
+			"channel_id": "5050"
+		},
+		{
+			"platform": "bilibili",
+			"channel_id": "22688305"
+		},
+		{
+			"platform": "bilibili",
+			"channel_id": "733"
+		},
+		{
+			"platform": "douyu",
+			"channel_id": "9999"
+		},
+		{
+			"platform": "huya",
+			"channel_id": "211888"
+		},
+		{
+			"platform": "huya",
+			"channel_id": "128465"
+		}
+	]
+}
