@@ -8,6 +8,12 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/Cynosure159/LiveChannelsCN/actions/workflows/ci.yml">
+    <img src="https://github.com/Cynosure159/LiveChannelsCN/actions/workflows/ci.yml/badge.svg" alt="CI 状态" />
+  </a>
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat-square&logo=go" alt="Go Version" />
   <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License" />
   <img src="https://img.shields.io/badge/Docker-Ready-2496ED?style=flat-square&logo=docker" alt="Docker" />
