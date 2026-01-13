@@ -16,7 +16,9 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat-square&logo=go" alt="Go Version" />
   <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License" />
-  <img src="https://img.shields.io/badge/Docker-Ready-2496ED?style=flat-square&logo=docker" alt="Docker" />
+  <a href="https://hub.docker.com/r/cynosure159/live-channels-cn">
+    <img src="https://img.shields.io/docker/v/cynosure159/live-channels-cn?sort=semver&style=flat-square&logo=docker&start=latest" alt="Docker Image" />
+  </a>
 </p>
 
 ---

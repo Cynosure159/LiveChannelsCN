@@ -193,6 +193,7 @@ Service 层使用 **Worker Pool** 模式处理并发请求，默认 10 个 Worke
 - **质量检查**：每次 Push 或 PR 自动运行 `go fmt` 和 `go vet`。
 - **多平台构建**：在 Linux 和 Windows 上验证编译成功。
 - **自动化测试**：运行 `go test` 确保代码正确性。
+- **Docker 自动发布**：配置了 `.github/workflows/docker-publish.yml`，当推送 Tag (如 `v1.0.0`) 时自动构建并推送到 Docker Hub。
 
 ---
 
