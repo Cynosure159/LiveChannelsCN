@@ -30,7 +30,7 @@ COPY --from=builder /app/web /web
 VOLUME ["/config"]
 
 # 设置环境变量
-ENV CONFIG_PATH=/config/channel.json
+ENV CONFIG_PATH=/config/config.json
 ENV WEB_ROOT=/web
 
 # 暴露端口

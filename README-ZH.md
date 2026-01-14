@@ -46,30 +46,58 @@
 - Go 1.21+ 或 Docker
 - 运行中的 [Glance](https://github.com/glanceapp/glance) 实例
 
-### 方式一：Docker 部署（推荐）
+### 方式一：Docker Hub 镜像（推荐）
+
+```bash
+# 1. 创建配置文件
+mkdir -p config
+cat > config/config.json << 'EOF'
+{
+  "channels": [
+    {
+      "platform": "bilibili",
+      "channel_id": "21013446",
+      "name": "主播名称"
+    }
+  ]
+}
+EOF
+
+# 2. 运行容器
+docker run -d \
+  --name live-channels \
+  -p 8081:8081 \
+  -v $(pwd)/config/config.json:/config/config.json:ro \
+  -e GIN_MODE=release \
+  -e LOG_LEVEL=info \
+  --restart unless-stopped \
+  cynosure159/live-channels-cn:latest
+```
+
+### 方式二：Docker Compose
 
 ```bash
 # 克隆仓库
-git clone https://github.com/yourusername/LiveChannelsCN.git
+git clone https://github.com/Cynosure159/LiveChannelsCN.git
 cd LiveChannelsCN
 
-# 复制并编辑配置
-cp config.example.json config.json
+# 编辑配置文件
+vim config/config.json
 
 # 启动服务
 docker-compose up -d
 ```
 
-### 方式二：源码编译
+### 方式三：源码编译
 
 ```bash
 # 克隆并编译
-git clone https://github.com/yourusername/LiveChannelsCN.git
+git clone https://github.com/Cynosure159/LiveChannelsCN.git
 cd LiveChannelsCN
 go build -o live-channels
 
 # 配置并运行
-cp config.example.json config.json
+cp config.example.json config/config.json
 ./live-channels
 ```
 
@@ -152,6 +180,16 @@ make build
 | `CONFIG_PATH` | `-config` | `./config/config.json` | 配置文件路径 |
 | `PORT` | `-port` | `8081` | 服务监听端口 |
 | `USER_AGENT` | `-ua` | (内置默认值) | 自定义 HTTP User-Agent |
+
+**Docker 部署示例**：
+```bash
+docker run -d \
+  -p 8081:8081 \
+  -v ./config/config.json:/config/config.json:ro \
+  -e LOG_LEVEL=info \
+  -e GIN_MODE=release \
+  cynosure159/live-channels-cn:latest
+```
 
 ## 📄 开源许可
 
