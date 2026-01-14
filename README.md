@@ -16,7 +16,9 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat-square&logo=go" alt="Go Version" />
   <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License" />
-  <img src="https://img.shields.io/badge/Docker-Ready-2496ED?style=flat-square&logo=docker" alt="Docker" />
+  <a href="https://hub.docker.com/r/cynosure159/live-channels-cn">
+    <img src="https://img.shields.io/docker/v/cynosure159/live-channels-cn?sort=semver&style=flat-square&logo=docker&start=latest" alt="Docker Image" />
+  </a>
 </p>
 
 ---
@@ -44,30 +46,58 @@ The widget displays streamers in a familiar Twitch-style layout:
 - Go 1.21+ or Docker
 - A running [Glance](https://github.com/glanceapp/glance) instance
 
-### Option 1: Docker (Recommended)
+### Option 1: Docker Hub Image (Recommended)
+
+```bash
+# 1. Create configuration file
+mkdir -p config
+cat > config/config.json << 'EOF'
+{
+  "channels": [
+    {
+      "platform": "bilibili",
+      "channel_id": "21013446",
+      "name": "Streamer Name"
+    }
+  ]
+}
+EOF
+
+# 2. Run container
+docker run -d \
+  --name live-channels \
+  -p 8081:8081 \
+  -v $(pwd)/config/config.json:/config/config.json:ro \
+  -e GIN_MODE=release \
+  -e LOG_LEVEL=info \
+  --restart unless-stopped \
+  cynosure159/live-channels-cn:latest
+```
+
+### Option 2: Docker Compose
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/LiveChannelsCN.git
+git clone https://github.com/Cynosure159/LiveChannelsCN.git
 cd LiveChannelsCN
 
-# Copy and edit config
-cp config.example.json config.json
+# Edit configuration
+vim config/config.json
 
 # Start the service
 docker-compose up -d
 ```
 
-### Option 2: Build from Source
+### Option 3: Build from Source
 
 ```bash
 # Clone and build
-git clone https://github.com/yourusername/LiveChannelsCN.git
+git clone https://github.com/Cynosure159/LiveChannelsCN.git
 cd LiveChannelsCN
 go build -o live-channels
 
 # Configure and run
-cp config.example.json config.json
+cp config.example.json config/config.json
 ./live-channels
 ```
 
@@ -150,6 +180,16 @@ You can adjust service behavior via environment variables or command-line flags:
 | `CONFIG_PATH` | `-config` | `./config/config.json` | Path to your configuration file |
 | `PORT` | `-port` | `8081` | Server listening port |
 | `USER_AGENT` | `-ua` | (Built-in Default) | Custom HTTP User-Agent |
+
+**Docker Deployment Example**:
+```bash
+docker run -d \
+  -p 8081:8081 \
+  -v ./config/config.json:/config/config.json:ro \
+  -e LOG_LEVEL=info \
+  -e GIN_MODE=release \
+  cynosure159/live-channels-cn:latest
+```
 
 ## 📄 License
 
