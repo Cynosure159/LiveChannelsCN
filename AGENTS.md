@@ -72,7 +72,7 @@ type StreamProvider interface {
 ```
 
 **环境变量**：
-- `CONFIG_PATH`: 配置文件路径（默认 `./config.json`）
+- `CONFIG_PATH`: 配置文件路径（默认 `./config/config.json`，Docker 中为 `/config/config.json`）
 - `PORT`: 服务端口（默认 `8081`）
 - `LOG_LEVEL`: 日志等级 (`debug`, `info`, `warn`, `error`，默认 `info`)
 - `GIN_MODE`: 运行模式 (`release` 会启用生产级 JSON 日志，默认为 `debug`)
