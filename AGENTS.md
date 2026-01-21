@@ -281,7 +281,7 @@ go build -o live-channels.exe
 
 ## 📊 当前状态
 
-**版本**：v0.9.2 (Performance)
+**版本**：v0.9.3 (Quality)
 
 **已完成优化**：
 - ✅ 支持 `CONFIG_PATH` 环境变量
@@ -290,12 +290,18 @@ go build -o live-channels.exe
 - ✅ 内存缓存机制 (TTL + 智能降级 + 参数化)
 - ✅ 结构化日志 (Zap)
 - ✅ 移除无效测试目录
+- ✅ **全面提升单元测试覆盖率**：
+    - `internal/api`: 路由、健康检查、缓存参数解析测试
+    - `internal/config`: 配置加载、错误处理测试
+    - `internal/models`: 平台验证逻辑测试
+    - `internal/platform`: 工厂模式测试
+    - `internal/service`: 排序逻辑、配置覆盖逻辑测试
+- ✅ GitHub Actions CI/CD (自动测试、Docker 自动发布)
 
 **待办**：
 - [ ] 更多平台支持（抖音、快手）
 - [ ] WebSocket 实时推送
 - [ ] 主播分组管理
-- [ ] Git CI 流水线 (自动发布 Docker Hub)
 
 ---
 
