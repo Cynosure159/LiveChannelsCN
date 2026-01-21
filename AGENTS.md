@@ -298,6 +298,7 @@ go build -o live-channels.exe
     - `internal/platform`: 工厂模式测试
     - `internal/service`: 排序逻辑、配置覆盖逻辑测试
 - ✅ GitHub Actions CI/CD (自动测试、Docker 构建测试、Docker 自动发布)
+- ✅ 添加 项目许可证 (LICENSE)
 
 **待办**：
 - [ ] 更多平台支持（抖音、快手）
