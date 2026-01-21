@@ -193,6 +193,7 @@ Service 层使用 **Worker Pool** 模式处理并发请求，默认 10 个 Worke
 - **质量检查**：每次 Push 或 PR 自动运行 `go fmt` 和 `go vet`。
 - **多平台构建**：在 Linux 和 Windows 上验证编译成功。
 - **自动化测试**：运行 `go test` 确保代码正确性。
+- **Docker 构建测试**：在每一次 Push 或 PR 时验证 Docker 镜像能否成功构建。
 - **Docker 自动发布**：配置了 `.github/workflows/docker-publish.yml`，当推送 Tag (如 `v1.0.0`) 时自动构建并推送到 Docker Hub。
 
 ---
@@ -296,7 +297,7 @@ go build -o live-channels.exe
     - `internal/models`: 平台验证逻辑测试
     - `internal/platform`: 工厂模式测试
     - `internal/service`: 排序逻辑、配置覆盖逻辑测试
-- ✅ GitHub Actions CI/CD (自动测试、Docker 自动发布)
+- ✅ GitHub Actions CI/CD (自动测试、Docker 构建测试、Docker 自动发布)
 
 **待办**：
 - [ ] 更多平台支持（抖音、快手）
